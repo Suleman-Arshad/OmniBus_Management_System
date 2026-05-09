@@ -1,4 +1,4 @@
-const API = '/api';
+const API = 'http://localhost:3000/api';
 
 // ── Auth Logic ────────────────────────────────────────────────────────────────
 function checkAuth() {
