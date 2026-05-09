@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OmniBus — Management System</title>
+  <link rel="stylesheet" href="style.css" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+</head>
+
+<body>
+
+  <!-- Auth Overlay -->
+  <div id="auth-overlay" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="logo" style="border: none; padding: 0; justify-content: center; font-size: 1.5rem;">
+          <span class="logo-icon">⬡</span>
+          <span class="logo-text">OmniBus</span>
+        </div>
+        <p id="auth-subtitle">Sign in to Admin Portal</p>
+      </div>
+
+      <div id="login-form" class="auth-form">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="login-user" placeholder="Enter username" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-pass" placeholder="••••••••" />
+        </div>
+        <button class="btn-primary" onclick="handleLogin()" style="width: 100%; margin-top: 10px;">Login</button>
+        <p class="auth-switch">Don't have an account? <span onclick="toggleAuth('signup')">Sign Up</span></p>
+      </div>
+
+      <div id="signup-form" class="auth-form hidden">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="signup-user" placeholder="Choose username" />
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="signup-pass" placeholder="••••••••" />
+        </div>
+        <button class="btn-primary" onclick="handleSignup()" style="width: 100%; margin-top: 10px;">Sign Up</button>
+        <p class="auth-switch">Already have an account? <span onclick="toggleAuth('login')">Login</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <span class="logo-icon">⬡</span>
+      <span class="logo-text">OmniBus</span>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" data-section="dashboard">
+        <span class="nav-icon">◈</span> Dashboard
+      </button>
+      <button class="nav-item" data-section="passengers">
+        <span class="nav-icon">◉</span> Passengers
+      </button>
+      <button class="nav-item" data-section="staff">
+        <span class="nav-icon">◎</span> Staff
+      </button>
+      <button class="nav-item" data-section="buses">
+        <span class="nav-icon">▣</span> Buses
+      </button>
+      <button class="nav-item" data-section="routes">
+        <span class="nav-icon">⬡</span> Routes
+      </button>
+      <button class="nav-item" data-section="trips">
+        <span class="nav-icon">◆</span> Trips
+      </button>
+      <button class="nav-item" data-section="bookings">
+        <span class="nav-icon">◇</span> Bookings
+      </button>
+      <button class="nav-item" data-section="payments">
+        <span class="nav-icon">◈</span> Payments
+      </button>
+      <button class="nav-item" data-section="tickets">
+        <span class="nav-icon">▤</span> Tickets
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-ghost" onclick="handleLogout()" style="width: 100%; margin-bottom: 12px; border-color: var(--danger); color: var(--danger);">Logout</button>
+      <div style="text-align: center;"><span>v1.0.0</span></div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="section active">
+      <div class="section-header">
+        <h1>Dashboard</h1>
+        <p>System overview</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Passengers</div>
+          <div class="stat-value" id="stat-passengers">—</div>
+        </div>
+        <div class="stat-card accent">
+          <div class="stat-label">Buses</div>
+          <div class="stat-value" id="stat-buses">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Trips</div>
+          <div class="stat-value" id="stat-trips">—</div>
+        </div>
+        <div class="stat-card accent">
+          <div class="stat-label">Bookings</div>
+          <div class="stat-value" id="stat-bookings">—</div>
+        </div>
+        <div class="stat-card highlight">
+          <div class="stat-label">Revenue (PKR)</div>
+          <div class="stat-value" id="stat-revenue">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Pending</div>
+          <div class="stat-value" id="stat-pending">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PASSENGERS -->
+    <section id="passengers" class="section">
+      <div class="section-header">
+        <div>
+          <h1>Passengers</h1>
+          <p>Manage registered passengers</p>
+        </div>
+        <button class="btn-primary" onclick="openAddPassenger()">+ Add Passenger</button>
+      </div>
+      <div class="table-wrap">
+        <table id="passengers-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>CNIC</th>
+              <th>DOB</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- STAFF -->
+    <section id="staff" class="section">
+      <div class="section-header">
+        <div>
+          <h1>Staff</h1>
+          <p>Drivers, hostesses, security & attendants</p>
+        </div>
+        <button class="btn-primary" onclick="openAddStaff()">+ Add Staff</button>
+      </div>
+      <div class="table-wrap">
+        <table id="staff-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Details</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- BUSES -->
+    <section id="buses" class="section">
+      <div class="section-header">
+        <div>
+          <h1>Buses</h1>
+          <p>Fleet management</p>
+        </div>
+        <button class="btn-primary" onclick="openAddBus()">+ Add Bus</button>
+      </div>
+      <div class="table-wrap">
+        <table id="buses-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Bus #</th>
+              <th>Seats</th>
+              <th>Types</th>
+              <th>Assigned Driver</th>
+              <th>Assigned Hostess</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ROUTES -->
+    <section id="routes" class="section">
+      <div class="section-header">
+        <div>
+          <h1>Routes</h1>
+          <p>Source to destination paths</p>
+        </div>
+        <button class="btn-primary" onclick="openAddRoute()">+ Add Route</button>
+      </div>
+      <div class="table-wrap">
+        <table id="routes-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Distance (km)</th>
+              <th>Est. Duration</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TRIPS -->
+    <section id="trips" class="section">
+      <div class="section-header">
+        <div>
+          <h1>Trips</h1>
+          <p>Scheduled journeys</p>
+        </div>
+        <button class="btn-primary" onclick="openAddTrip()">+ Add Trip</button>
+      </div>
+      <div class="table-wrap">
+        <table id="trips-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Bus</th>
+              <th>Route</th>
+              <th>Date</th>
+              <th>Depart</th>
+              <th>Arrive</th>
+              <th>Fare</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- BOOKINGS -->
+    <section id="bookings" class="section">
+      <div class="section-header">
+        <div>
+          <h1>Bookings</h1>
+          <p>Passenger reservations</p>
+        </div>
+        <button class="btn-primary" onclick="openAddBooking()">+ Add Booking</button>
+      </div>
+      <div class="table-wrap">
+        <table id="bookings-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Passenger</th>
+              <th>Route</th>
+              <th>Date</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PAYMENTS -->
+    <section id="payments" class="section">
+      <div class="section-header">
+        <div>
+          <h1>Payments</h1>
+          <p>Transaction records</p>
+        </div>
+        <button class="btn-primary" onclick="openAddPayment()">+ Record Payment</button>
+      </div>
+      <div class="table-wrap">
+        <table id="payments-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Booking ID</th>
+              <th>Passenger</th>
+              <th>Method</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TICKETS -->
+    <section id="tickets" class="section">
+      <div class="section-header">
+        <div>
+          <h1>Tickets</h1>
+          <p>Issued travel tickets</p>
+        </div>
+        <button class="btn-primary" onclick="openAddTicket()">+ Issue Ticket</button>
+      </div>
+      <div class="table-wrap">
+        <table id="tickets-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Ticket #</th>
+              <th>Passenger</th>
+              <th>Route</th>
+              <th>Bus</th>
+              <th>Seat</th>
+              <th>Issued</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <!-- ── MODALS ─────────────────────────────────────────────────────── -->
+
+  <!-- Passenger Modal -->
+  <div id="passenger-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="passenger-modal-title">Add Passenger</h2><button class="modal-close"
+          onclick="closeModal('passenger-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="p-id" />
+        <div class="form-row">
+          <div class="form-group"><label>Passenger ID</label><input id="p-pid" type="number" placeholder="e.g. 101" />
+          </div>
+          <div class="form-group"><label>First Name</label><input id="p-fname" placeholder="Ali" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Last Name</label><input id="p-lname" placeholder="Hassan" /></div>
+          <div class="form-group"><label>Email</label><input id="p-email" type="email" placeholder="ali@mail.com" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Phone</label><input id="p-phone" placeholder="03001234567" /></div>
+          <div class="form-group"><label>CNIC</label><input id="p-cnic" placeholder="35201-1234567-1" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Date of Birth</label><input id="p-dob" type="date" /></div>
+          <div class="form-group"><label>Password</label><input id="p-pass" type="password" placeholder="••••••" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('passenger-modal')">Cancel</button>
+        <button class="btn-primary" onclick="savePassenger()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Staff Modal -->
+  <div id="staff-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="staff-modal-title">Add Staff</h2><button class="modal-close"
+          onclick="closeModal('staff-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="s-id" />
+        <div class="form-row">
+          <div class="form-group"><label>Operator ID</label><input id="s-oid" type="number" placeholder="201" /></div>
+          <div class="form-group"><label>Name</label><input id="s-name" placeholder="Full name" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Phone</label><input id="s-phone" placeholder="03001234567" /></div>
+          <div class="form-group"><label>Address</label><input id="s-addr" placeholder="City" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Role</label>
+            <select id="s-role" onchange="toggleStaffFields()">
+              <option value="">— Select —</option>
+              <option>Driver</option>
+              <option>Hostess</option>
+              <option>Security</option>
+              <option>Attendant</option>
+            </select>
+          </div>
+        </div>
+        <div id="driver-fields" class="form-row hidden">
+          <div class="form-group"><label>License #</label><input id="s-license" placeholder="DL-123" /></div>
+          <div class="form-group"><label>Experience (yrs)</label><input id="s-exp" type="number" placeholder="5" />
+          </div>
+        </div>
+        <div id="security-fields" class="form-row hidden">
+          <div class="form-group"><label>Security License #</label><input id="s-slicense" placeholder="SL-456" /></div>
+        </div>
+        <div id="attendant-fields" class="form-row hidden">
+          <div class="form-group"><label>Service Level</label>
+            <select id="s-level">
+              <option>Trainee</option>
+              <option selected>Junior</option>
+              <option>Senior</option>
+              <option>Expert</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group hidden" id="hostess-lang-group" style="margin-top: 15px;">
+          <label>Languages Known (for Hostess)</label>
+          <input id="s-lang" placeholder="e.g. Urdu, English, Punjabi" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('staff-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveStaff()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bus Modal -->
+  <div id="bus-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="bus-modal-title">Add Bus</h2><button class="modal-close" onclick="closeModal('bus-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="b-id" />
+        <div class="form-row">
+          <div class="form-group"><label>Bus ID</label><input id="b-bid" type="number" placeholder="1" /></div>
+          <div class="form-group"><label>Bus Number</label><input id="b-num" placeholder="PB-1234" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Total Seats</label><input id="b-seats" type="number" placeholder="40" /></div>
+          <div class="form-group">
+            <label>Assigned Driver</label>
+            <select id="b-opid">
+              <option value="">— No Driver —</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Assigned Hostess</label>
+            <select id="b-hid">
+              <option value="">— No Hostess —</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Bus Types</label>
+            <div class="checkbox-group">
+              <label class="checkbox-item"><input type="checkbox" id="bt-luxury" value="Luxury" /> Luxury</label>
+              <label class="checkbox-item"><input type="checkbox" id="bt-ac" value="AC" /> AC</label>
+              <label class="checkbox-item"><input type="checkbox" id="bt-sleeper" value="Sleeper" /> Sleeper</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('bus-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveBus()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Route Modal -->
+  <div id="route-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="route-modal-title">Add Route</h2><button class="modal-close"
+          onclick="closeModal('route-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="r-id" />
+        <div class="form-row">
+          <div class="form-group"><label>Route ID</label><input id="r-rid" type="number" placeholder="1" /></div>
+          <div class="form-group"><label>Source City</label><input id="r-src" placeholder="Lahore" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Destination City</label><input id="r-dst" placeholder="Karachi" /></div>
+          <div class="form-group"><label>Distance (km)</label><input id="r-dist" type="number" step="0.01"
+              placeholder="1210.5" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Estimated Duration (HH:MM:SS)</label><input id="r-dur"
+              placeholder="14:30:00" /></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('route-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveRoute()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trip Modal -->
+  <div id="trip-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="trip-modal-title">Add Trip</h2><button class="modal-close" onclick="closeModal('trip-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="tr-id" />
+        <div class="form-row">
+          <div class="form-group"><label>Trip ID</label><input id="tr-tid" type="number" placeholder="1" /></div>
+          <div class="form-group">
+            <label>Bus (Driver-assigned only)</label>
+            <select id="tr-bid">
+              <option value="">— Select Bus —</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Route</label>
+            <select id="tr-rid">
+              <option value="">— Select Route —</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Departure Date</label><input id="tr-ddate" type="date" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Departure Time</label><input id="tr-dtime" type="time" /></div>
+          <div class="form-group"><label>Arrival Time</label><input id="tr-atime" type="time" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Fare (PKR)</label><input id="tr-fare" type="number" step="0.01"
+              placeholder="1500" /></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('trip-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveTrip()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking Modal -->
+  <div id="booking-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="booking-modal-title">Add Booking</h2><button class="modal-close"
+          onclick="closeModal('booking-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="bk-id" />
+        <div class="form-row">
+          <div class="form-group"><label>Booking ID</label><input id="bk-bid" type="number" placeholder="1" /></div>
+          <div class="form-group">
+            <label>Passenger</label>
+            <select id="bk-pid">
+              <option value="">— Select Passenger —</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Trip</label>
+            <select id="bk-tid">
+              <option value="">— Select Trip —</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Total Amount (PKR)</label><input id="bk-amt" type="number" step="0.01"
+              placeholder="1500" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Status</label>
+            <select id="bk-status">
+              <option>Pending</option>
+              <option>Confirmed</option>
+              <option>Cancelled</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('booking-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveBooking()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Modal -->
+  <div id="payment-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="payment-modal-title">Record Payment</h2><button class="modal-close"
+          onclick="closeModal('payment-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="py-id" />
+        <div class="form-row">
+          <div class="form-group"><label>Payment ID</label><input id="py-pid" type="number" placeholder="1" /></div>
+          <div class="form-group">
+            <label>Booking</label>
+            <select id="py-bid">
+              <option value="">— Select Booking —</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Method</label>
+            <select id="py-method">
+              <option>Cash</option>
+              <option>JazzCash</option>
+              <option>EasyPaisa</option>
+              <option>Credit Card</option>
+              <option>Debit Card</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Amount (PKR)</label><input id="py-amt" type="number" step="0.01"
+              placeholder="1500" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Status</label>
+            <select id="py-status">
+              <option>Pending</option>
+              <option>Completed</option>
+              <option>Failed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('payment-modal')">Cancel</button>
+        <button class="btn-primary" onclick="savePayment()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ticket Modal -->
+  <div id="ticket-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Issue Ticket</h2><button class="modal-close" onclick="closeModal('ticket-modal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group"><label>Ticket ID</label><input id="tk-tid" type="number" placeholder="Optional (Auto)" /></div>
+          <div class="form-group">
+            <label>Booking</label>
+            <select id="tk-bid" onchange="updateTicketSeats()">
+              <option value="">— Select Booking —</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Seat</label>
+            <select id="tk-sid">
+              <option value="">— Select Available Seat —</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Ticket Number</label><input id="tk-num" placeholder="TKT-2024-001" /></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('ticket-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveTicket()">Issue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete -->
+  <div id="confirm-modal" class="modal-overlay">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2>Confirm Delete</h2>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-msg">Are you sure?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="closeModal('confirm-modal')">Cancel</button>
+        <button class="btn-danger" id="confirm-yes">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

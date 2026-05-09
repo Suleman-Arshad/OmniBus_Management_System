@@ -1,0 +1,159 @@
+==================================================
+OMNIBUS MANAGEMENT SYSTEM - SAMPLE TESTING DATA
+==================================================
+Use this data to fill out the forms in your web portal.
+Add the data in this exact order to ensure all dropdowns work perfectly!
+
+--- 1. STAFF ---
+(Add these first so they can be assigned to buses)
+
+Staff 1
+- Operator ID: 101
+- Name: Ahmed Khan
+- Phone: 03001234567
+- Address: Lahore
+- Role: Driver
+- License #: DL-9988
+- Experience (yrs): 10
+
+Staff 2
+- Operator ID: 102
+- Name: Sana Ali
+- Phone: 03219876543
+- Address: Karachi
+- Role: Hostess
+- Languages Known: Urdu, English, Sindhi
+
+Staff 3
+- Operator ID: 103
+- Name: Tariq Mehmood
+- Phone: 03334567890
+- Address: Islamabad
+- Role: Security
+- Security License #: SL-5544
+
+
+--- 2. BUSES ---
+(Requires Staff to be added first so Ahmed Khan shows up as driver)
+
+Bus 1
+- Bus ID: 201
+- Bus Number: LHR-5566
+- Total Seats: 40
+- Assigned Driver: #101 - Ahmed Khan
+- Bus Types: Check "Luxury" and "AC"
+
+Bus 2
+- Bus ID: 202
+- Bus Number: KHI-7788
+- Total Seats: 20
+- Assigned Driver: (Leave as No Driver to test unassigned)
+- Bus Types: Check "Sleeper" and "AC"
+
+
+--- 3. ROUTES ---
+
+Route 1
+- Route ID: 301
+- Source City: Lahore
+- Destination City: Karachi
+- Distance (km): 1210
+- Estimated Duration: 16:30:00
+
+Route 2
+- Route ID: 302
+- Source City: Islamabad
+- Destination City: Lahore
+- Distance (km): 380
+- Estimated Duration: 04:15:00
+
+
+--- 4. TRIPS ---
+(Requires Buses and Routes)
+
+Trip 1
+- Trip ID: 401
+- Bus: LHR-5566
+- Route: Lahore -> Karachi
+- Departure Date: 2026-06-01
+- Departure Time: 08:00 AM
+- Arrival Time: 12:30 AM (next day)
+- Fare (PKR): 4500
+
+Trip 2
+- Trip ID: 402
+- Bus: KHI-7788
+- Route: Islamabad -> Lahore
+- Departure Date: 2026-06-02
+- Departure Time: 10:00 AM
+- Arrival Time: 02:15 PM
+- Fare (PKR): 2000
+
+
+--- 5. PASSENGERS ---
+
+Passenger 1
+- Passenger ID: 501
+- First Name: Bilal
+- Last Name: Raza
+- Email: bilal@email.com
+- Phone: 03112233445
+- CNIC: 35201-9988776-5
+- Date of Birth: 1995-08-15
+- Password: password123
+
+Passenger 2
+- Passenger ID: 502
+- First Name: Fatima
+- Last Name: Sheikh
+- Email: fatima@email.com
+- Phone: 03445566778
+- CNIC: 42201-1122334-9
+- Date of Birth: 1998-02-20
+- Password: securepass456
+
+
+--- 6. BOOKINGS ---
+(Requires Passengers and Trips)
+
+Booking 1
+- Booking ID: 601
+- Passenger ID: 501 (Bilal Raza)
+- Trip ID: 401 (Lahore -> Karachi)
+- Total Amount: 4500
+- Status: Pending
+
+Booking 2
+- Booking ID: 602
+- Passenger ID: 502 (Fatima Sheikh)
+- Trip ID: 402 (Islamabad -> Lahore)
+- Total Amount: 2000
+- Status: Confirmed
+
+
+--- 7. PAYMENTS ---
+(Requires Bookings)
+
+Payment 1
+- Payment ID: 701
+- Booking ID: 601
+- Payment Method: Card
+- Amount: 4500
+- Status: Completed
+*(Note: After saving, Booking 1 should visually show as paid if you check back later)*
+
+
+--- 8. TICKETS ---
+(Requires Bookings and Available Seats)
+
+Ticket 1
+- Ticket ID: 801
+- Ticket #: TKT-LHR-KHI-001
+- Booking ID: 601
+- Seat: (Open dropdown, pick "Bus LHR-5566 - Seat-1 (Front Seat)")
+
+Ticket 2
+- Ticket ID: 802
+- Ticket #: TKT-ISL-LHR-002
+- Booking ID: 602
+- Seat: (Open dropdown, pick "Bus KHI-7788 - Seat-10 (Window Seat)")

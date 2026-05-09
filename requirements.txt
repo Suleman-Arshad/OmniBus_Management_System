@@ -1,0 +1,8 @@
+# System Requirements
+Node.js (v14 or higher)
+MySQL Server (v8.0 or higher)
+
+# Node.js Dependencies (npm)
+express
+mysql2
+cors
