@@ -6,17 +6,23 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const conn = mysql.createConnection({
-  host: '127.0.0.1',
-  port: 3306,
-  user: 'root',
-  password: 'suleman176191@$',
-  database: 'OmniBus_Management'
+const connection = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 12639,
+  ssl: {
+    rejectUnauthorized: false // Required for Aiven Cloud
+  }
 });
 
-conn.connect(err => {
-  if (err) throw err;
-  console.log('MySQL connected!');
+connection.connect((err) => {
+  if (err) {
+    console.error('Error connecting to the database:', err.stack);
+    return;
+  }
+  console.log('Connected to Aiven MySQL as id ' + connection.threadId);
 });
 
 // Helper: reset AUTO_INCREMENT to MAX(id)+1 after manual ID inserts
@@ -456,4 +462,8 @@ app.get('/api/stats', (req, res) => {
   });
 });
 
-app.listen(3000, () => console.log('Server running on http://localhost:3000'));
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
