@@ -61,28 +61,28 @@ app.post('/api/auth/login', (req, res) => {
 
 // ─── PASSENGERS ──────────────────────────────────────────────────────────────
 app.get('/api/passengers', (req, res) => {
-  conn.query('SELECT * FROM Passenger', (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
+  conn.query('SELECT * FROM passenger', (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
 });
 app.get('/api/passengers/:id', (req, res) => {
-  conn.query('SELECT * FROM Passenger WHERE PassengerID = ?', [req.params.id], (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r[0]));
+  conn.query('SELECT * FROM passenger WHERE PassengerID = ?', [req.params.id], (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r[0]));
 });
 app.post('/api/passengers', async (req, res) => {
   const { PassengerID, FirstName, LastName, Email, Phone, CNIC, DateOfBirth, Password } = req.body;
-  conn.query('INSERT INTO Passenger VALUES (?,?,?,?,?,?,?,?)', [PassengerID || null, FirstName, LastName, Email, Phone, CNIC, DateOfBirth, Password],
+  conn.query('INSERT INTO passenger VALUES (?,?,?,?,?,?,?,?)', [PassengerID || null, FirstName, LastName, Email, Phone, CNIC, DateOfBirth, Password],
     async (err, r) => {
       if (err) return res.status(500).json({ error: err.message });
-      await resetAutoIncrement('Passenger', 'PassengerID');
+      await resetAutoIncrement('passenger', 'PassengerID');
       res.json({ message: 'Passenger created', id: r.insertId });
     });
 });
 app.put('/api/passengers/:id', (req, res) => {
   const { FirstName, LastName, Email, Phone, CNIC, DateOfBirth } = req.body;
-  conn.query('UPDATE Passenger SET FirstName=?, LastName=?, Email=?, Phone=?, CNIC=?, DateOfBirth=? WHERE PassengerID=?',
+  conn.query('UPDATE passenger SET FirstName=?, LastName=?, Email=?, Phone=?, CNIC=?, DateOfBirth=? WHERE PassengerID=?',
     [FirstName, LastName, Email, Phone, CNIC, DateOfBirth, req.params.id],
     (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Updated' }));
 });
 app.delete('/api/passengers/:id', (req, res) => {
-  conn.query('DELETE FROM Passenger WHERE PassengerID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
+  conn.query('DELETE FROM passenger WHERE PassengerID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
 // ─── BUS TYPES ────────────────────────────────────────────────────────────────
