@@ -154,7 +154,7 @@ app.delete('/api/buses/:id', (req, res) => {
 
 // ─── ROUTES ──────────────────────────────────────────────────────────────────
 app.get('/api/routes', (req, res) => {
-  conn.query('SELECT * FROM Route', (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
+  conn.query('SELECT * FROM route', (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
 });
 app.post('/api/routes', async (req, res) => {
   const { RouteID, SourceCity, DestinationCity, Distance, EstimatedDuration } = req.body;
@@ -178,7 +178,7 @@ app.delete('/api/routes/:id', (req, res) => {
 // ─── TRIPS ───────────────────────────────────────────────────────────────────
 app.get('/api/trips', (req, res) => {
   conn.query(`SELECT t.*, b.BusNumber, r.SourceCity, r.DestinationCity
-              FROM Trip t
+              FROM trip t
               LEFT JOIN bus b ON t.BusID = b.BusID
               LEFT JOIN route r ON t.RouteID = r.RouteID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
 });
@@ -216,7 +216,7 @@ app.get('/api/trips/:id/revenue', (req, res) => {
 app.get('/api/bookings', (req, res) => {
   conn.query(`SELECT bk.*, CONCAT(p.FirstName,' ',p.LastName) as PassengerName,
               r.SourceCity, r.DestinationCity, t.DepartureDate
-              FROM Booking bk
+              FROM booking bk
               LEFT JOIN passenger p ON bk.PassengerID = p.PassengerID
               LEFT JOIN trip t ON bk.TripID = t.TripID
               LEFT JOIN route r ON t.RouteID = r.RouteID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
@@ -228,7 +228,7 @@ app.post('/api/bookings', async (req, res) => {
     async (err) => {
       if (err) return res.status(500).json({ error: err.message });
       await resetAutoIncrement('booking', 'BookingID');
-      res.json({ message: 'Booking created' });
+      res.json({ message: 'booking created' });
     });
 });
 app.put('/api/bookings/:id', (req, res) => {
@@ -266,7 +266,7 @@ app.post('/api/payments', async (req, res) => {
       });
 
       await resetAutoIncrement('payment', 'PaymentID');
-      res.json({ message: 'Payment recorded' });
+      res.json({ message: 'payment recorded' });
     });
 });
 app.put('/api/payments/:id', (req, res) => {
