@@ -88,26 +88,26 @@ app.delete('/api/passengers/:id', (req, res) => {
 // ─── BUS TYPES ────────────────────────────────────────────────────────────────
 app.post('/api/bustypes', (req, res) => {
   const { BusID, CategoryName } = req.body;
-  conn.query('INSERT IGNORE INTO BusType VALUES (?,?)', [BusID, CategoryName],
+  conn.query('INSERT IGNORE INTO bustype VALUES (?,?)', [BusID, CategoryName],
     (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'BusType added' }));
 });
 app.delete('/api/bustypes/:busId', (req, res) => {
-  conn.query('DELETE FROM BusType WHERE BusID=?', [req.params.busId],
+  conn.query('DELETE FROM bustype WHERE BusID=?', [req.params.busId],
     (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'BusTypes cleared' }));
 });
 
 // ─── BUSES ───────────────────────────────────────────────────────────────────
 app.get('/api/buses', (req, res) => {
   conn.query(`SELECT b.*, bc.Name as DriverName, hc.Name as HostessName, GROUP_CONCAT(bt.CategoryName ORDER BY bt.CategoryName) as Types
-              FROM Bus b
-              LEFT JOIN BusCrew bc ON b.OperatorID = bc.OperatorID
-              LEFT JOIN BusCrew hc ON b.HostessID = hc.OperatorID
-              LEFT JOIN BusType bt ON b.BusID = bt.BusID
+              FROM bus b
+              LEFT JOIN buscrew bc ON b.OperatorID = bc.OperatorID
+              LEFT JOIN buscrew hc ON b.HostessID = hc.OperatorID
+              LEFT JOIN bustype bt ON b.BusID = bt.BusID
               GROUP BY b.BusID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
 });
 app.post('/api/buses', async (req, res) => {
   const { BusID, BusNumber, TotalSeats, OperatorID, HostessID, Types } = req.body;
-  conn.query('INSERT INTO Bus (BusID, BusNumber, TotalSeats, OperatorID, HostessID) VALUES (?,?,?,?,?)', [BusID || null, BusNumber, TotalSeats, OperatorID || null, HostessID || null],
+  conn.query('INSERT INTO bus (BusID, BusNumber, TotalSeats, OperatorID, HostessID) VALUES (?,?,?,?,?)', [BusID || null, BusNumber, TotalSeats, OperatorID || null, HostessID || null],
     async (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
       // FIX 3: Auto-generate Seat rows for the new bus
@@ -130,18 +130,18 @@ app.post('/api/buses', async (req, res) => {
           }
           seatValues.push([null, actualBusId, `Seat-${i}`, seatType, 'Available']);
         }
-        conn.query('INSERT INTO Seat (SeatID, BusID, SeatNumber, SeatType, SeatStatus) VALUES ?',
+        conn.query('INSERT INTO seat (SeatID, BusID, SeatNumber, SeatType, SeatStatus) VALUES ?',
           [seatValues], (seatErr) => {
             if (seatErr) console.error('Seat generation error:', seatErr.message);
           });
       }
-      await resetAutoIncrement('Bus', 'BusID');
+      await resetAutoIncrement('bus', 'BusID');
       res.json({ message: 'Bus created', id: actualBusId });
     });
 });
 app.put('/api/buses/:id', (req, res) => {
   const { BusNumber, TotalSeats, OperatorID, HostessID } = req.body;
-  conn.query('UPDATE Bus SET BusNumber=?, TotalSeats=?, OperatorID=?, HostessID=? WHERE BusID=?',
+  conn.query('UPDATE bus SET BusNumber=?, TotalSeats=?, OperatorID=?, HostessID=? WHERE BusID=?',
     [BusNumber, TotalSeats, OperatorID || null, HostessID || null, req.params.id],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -149,7 +149,7 @@ app.put('/api/buses/:id', (req, res) => {
     });
 });
 app.delete('/api/buses/:id', (req, res) => {
-  conn.query('DELETE FROM Bus WHERE BusID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
+  conn.query('DELETE FROM bus WHERE BusID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
 // ─── ROUTES ──────────────────────────────────────────────────────────────────
@@ -158,47 +158,47 @@ app.get('/api/routes', (req, res) => {
 });
 app.post('/api/routes', async (req, res) => {
   const { RouteID, SourceCity, DestinationCity, Distance, EstimatedDuration } = req.body;
-  conn.query('INSERT INTO Route VALUES (?,?,?,?,?)', [RouteID || null, SourceCity, DestinationCity, Distance, EstimatedDuration],
+  conn.query('INSERT INTO route VALUES (?,?,?,?,?)', [RouteID || null, SourceCity, DestinationCity, Distance, EstimatedDuration],
     async (err) => {
       if (err) return res.status(500).json({ error: err.message });
-      await resetAutoIncrement('Route', 'RouteID');
+      await resetAutoIncrement('route', 'RouteID');
       res.json({ message: 'Route created' });
     });
 });
 app.put('/api/routes/:id', (req, res) => {
   const { SourceCity, DestinationCity, Distance, EstimatedDuration } = req.body;
-  conn.query('UPDATE Route SET SourceCity=?, DestinationCity=?, Distance=?, EstimatedDuration=? WHERE RouteID=?',
+  conn.query('UPDATE route SET SourceCity=?, DestinationCity=?, Distance=?, EstimatedDuration=? WHERE RouteID=?',
     [SourceCity, DestinationCity, Distance, EstimatedDuration, req.params.id],
     (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Updated' }));
 });
 app.delete('/api/routes/:id', (req, res) => {
-  conn.query('DELETE FROM Route WHERE RouteID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
+  conn.query('DELETE FROM route WHERE RouteID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
 // ─── TRIPS ───────────────────────────────────────────────────────────────────
 app.get('/api/trips', (req, res) => {
   conn.query(`SELECT t.*, b.BusNumber, r.SourceCity, r.DestinationCity
               FROM Trip t
-              LEFT JOIN Bus b ON t.BusID = b.BusID
-              LEFT JOIN Route r ON t.RouteID = r.RouteID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
+              LEFT JOIN bus b ON t.BusID = b.BusID
+              LEFT JOIN route r ON t.RouteID = r.RouteID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
 });
 app.post('/api/trips', async (req, res) => {
   const { TripID, BusID, RouteID, DepartureDate, DepartureTime, ArrivalTime, Fare } = req.body;
-  conn.query('INSERT INTO Trip VALUES (?,?,?,?,?,?,?)', [TripID || null, BusID, RouteID, DepartureDate, DepartureTime, ArrivalTime, Fare],
+  conn.query('INSERT INTO trip VALUES (?,?,?,?,?,?,?)', [TripID || null, BusID, RouteID, DepartureDate, DepartureTime, ArrivalTime, Fare],
     async (err) => {
       if (err) return res.status(500).json({ error: err.message });
-      await resetAutoIncrement('Trip', 'TripID');
+      await resetAutoIncrement('trip', 'TripID');
       res.json({ message: 'Trip created' });
     });
 });
 app.put('/api/trips/:id', (req, res) => {
   const { BusID, RouteID, DepartureDate, DepartureTime, ArrivalTime, Fare } = req.body;
-  conn.query('UPDATE Trip SET BusID=?, RouteID=?, DepartureDate=?, DepartureTime=?, ArrivalTime=?, Fare=? WHERE TripID=?',
+  conn.query('UPDATE trip SET BusID=?, RouteID=?, DepartureDate=?, DepartureTime=?, ArrivalTime=?, Fare=? WHERE TripID=?',
     [BusID, RouteID, DepartureDate, DepartureTime, ArrivalTime, Fare, req.params.id],
     (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Updated' }));
 });
 app.delete('/api/trips/:id', (req, res) => {
-  conn.query('DELETE FROM Trip WHERE TripID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
+  conn.query('DELETE FROM trip WHERE TripID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
 // ─── PL/SQL: STORED PROCEDURE ENDPOINTS ──────────────────────────────────────
@@ -217,41 +217,41 @@ app.get('/api/bookings', (req, res) => {
   conn.query(`SELECT bk.*, CONCAT(p.FirstName,' ',p.LastName) as PassengerName,
               r.SourceCity, r.DestinationCity, t.DepartureDate
               FROM Booking bk
-              LEFT JOIN Passenger p ON bk.PassengerID = p.PassengerID
-              LEFT JOIN Trip t ON bk.TripID = t.TripID
-              LEFT JOIN Route r ON t.RouteID = r.RouteID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
+              LEFT JOIN passenger p ON bk.PassengerID = p.PassengerID
+              LEFT JOIN trip t ON bk.TripID = t.TripID
+              LEFT JOIN route r ON t.RouteID = r.RouteID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
 });
 app.post('/api/bookings', async (req, res) => {
   const { BookingID, PassengerID, TripID, TotalAmount, BookingStatus } = req.body;
-  conn.query('INSERT INTO Booking (BookingID, PassengerID, TripID, TotalAmount, BookingStatus) VALUES (?,?,?,?,?)',
+  conn.query('INSERT INTO booking (BookingID, PassengerID, TripID, TotalAmount, BookingStatus) VALUES (?,?,?,?,?)',
     [BookingID || null, PassengerID, TripID, TotalAmount, BookingStatus || 'Pending'],
     async (err) => {
       if (err) return res.status(500).json({ error: err.message });
-      await resetAutoIncrement('Booking', 'BookingID');
+      await resetAutoIncrement('booking', 'BookingID');
       res.json({ message: 'Booking created' });
     });
 });
 app.put('/api/bookings/:id', (req, res) => {
   const { PassengerID, TripID, TotalAmount, BookingStatus } = req.body;
-  conn.query('UPDATE Booking SET PassengerID=?, TripID=?, TotalAmount=?, BookingStatus=? WHERE BookingID=?',
+  conn.query('UPDATE booking SET PassengerID=?, TripID=?, TotalAmount=?, BookingStatus=? WHERE BookingID=?',
     [PassengerID, TripID, TotalAmount, BookingStatus, req.params.id],
     (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Updated' }));
 });
 app.delete('/api/bookings/:id', (req, res) => {
-  conn.query('DELETE FROM Booking WHERE BookingID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
+  conn.query('DELETE FROM booking WHERE BookingID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
 // ─── PAYMENTS ─────────────────────────────────────────────────────────────────
 app.get('/api/payments', (req, res) => {
   conn.query(`SELECT py.*, bk.TotalAmount, bk.BookingStatus,
               CONCAT(p.FirstName,' ',p.LastName) as PassengerName
-              FROM Payment py
-              LEFT JOIN Booking bk ON py.BookingID = bk.BookingID
-              LEFT JOIN Passenger p ON bk.PassengerID = p.PassengerID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
+              FROM payment py
+              LEFT JOIN booking bk ON py.BookingID = bk.BookingID
+              LEFT JOIN passenger p ON bk.PassengerID = p.PassengerID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
 });
 app.post('/api/payments', async (req, res) => {
   const { PaymentID, BookingID, PaymentMethod, PaymentAmount, PaymentStatus } = req.body;
-  conn.query('INSERT INTO Payment (PaymentID, BookingID, PaymentMethod, PaymentAmount, PaymentStatus) VALUES (?,?,?,?,?)',
+  conn.query('INSERT INTO payment (PaymentID, BookingID, PaymentMethod, PaymentAmount, PaymentStatus) VALUES (?,?,?,?,?)',
     [PaymentID || null, BookingID, PaymentMethod, PaymentAmount, PaymentStatus || 'Pending'],
     async (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
@@ -261,30 +261,30 @@ app.post('/api/payments', async (req, res) => {
       if (PaymentStatus === 'Completed') bookingStatus = 'Confirmed';
       else if (PaymentStatus === 'Failed') bookingStatus = 'Cancelled';
       
-      conn.query('UPDATE Booking SET BookingStatus = ? WHERE BookingID = ?', [bookingStatus, BookingID], (updErr) => {
+      conn.query('UPDATE booking SET BookingStatus = ? WHERE BookingID = ?', [bookingStatus, BookingID], (updErr) => {
         if (updErr) console.error('Booking status sync error:', updErr.message);
       });
 
-      await resetAutoIncrement('Payment', 'PaymentID');
+      await resetAutoIncrement('payment', 'PaymentID');
       res.json({ message: 'Payment recorded' });
     });
 });
 app.put('/api/payments/:id', (req, res) => {
   const { PaymentMethod, PaymentAmount, PaymentStatus } = req.body;
-  conn.query('UPDATE Payment SET PaymentMethod=?, PaymentAmount=?, PaymentStatus=? WHERE PaymentID=?',
+  conn.query('UPDATE payment SET PaymentMethod=?, PaymentAmount=?, PaymentStatus=? WHERE PaymentID=?',
     [PaymentMethod, PaymentAmount, PaymentStatus, req.params.id],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
       
       // Sync with Booking status
-      conn.query('SELECT BookingID FROM Payment WHERE PaymentID = ?', [req.params.id], (errB, rows) => {
+      conn.query('SELECT BookingID FROM payment WHERE PaymentID = ?', [req.params.id], (errB, rows) => {
         if (!errB && rows.length > 0) {
           const bId = rows[0].BookingID;
           let bStatus = 'Pending';
           if (PaymentStatus === 'Completed') bStatus = 'Confirmed';
           else if (PaymentStatus === 'Failed') bStatus = 'Cancelled';
           
-          conn.query('UPDATE Booking SET BookingStatus = ? WHERE BookingID = ?', [bStatus, bId]);
+          conn.query('UPDATE booking SET BookingStatus = ? WHERE BookingID = ?', [bStatus, bId]);
         }
       });
 
@@ -292,7 +292,7 @@ app.put('/api/payments/:id', (req, res) => {
     });
 });
 app.delete('/api/payments/:id', (req, res) => {
-  conn.query('DELETE FROM Payment WHERE PaymentID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
+  conn.query('DELETE FROM payment WHERE PaymentID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
 // ─── STAFF (BusCrew) ──────────────────────────────────────────────────────────
@@ -309,42 +309,42 @@ app.get('/api/staff', (req, res) => {
       WHEN h.OperatorID IS NOT NULL THEN 'Hostess'
       ELSE 'Staff'
     END as Role
-    FROM BusCrew bc
-    LEFT JOIN Driver d ON bc.OperatorID = d.OperatorID
-    LEFT JOIN SecurityStaff ss ON bc.OperatorID = ss.OperatorID
-    LEFT JOIN Attendant a ON bc.OperatorID = a.OperatorID
-    LEFT JOIN Hostess h ON bc.OperatorID = h.OperatorID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
+    FROM buscrew bc
+    LEFT JOIN driver d ON bc.OperatorID = d.OperatorID
+    LEFT JOIN securitystaff ss ON bc.OperatorID = ss.OperatorID
+    LEFT JOIN attendant a ON bc.OperatorID = a.OperatorID
+    LEFT JOIN hostess h ON bc.OperatorID = h.OperatorID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
 });
 // server.js mein Staff post route ko update karein
 app.post('/api/staff', async (req, res) => {
   const { OperatorID, Name, PhoneNumber, Address, Role, LicenseNumber, SLicenseNumber, ExperienceYears, ServiceLevel, Languages } = req.body;
 
-  conn.query('INSERT INTO BusCrew (OperatorID, Name, PhoneNumber, Address) VALUES (?,?,?,?)',
+  conn.query('INSERT INTO buscrew (OperatorID, Name, PhoneNumber, Address) VALUES (?,?,?,?)',
     [OperatorID || null, Name, PhoneNumber, Address], async (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
-      await resetAutoIncrement('BusCrew', 'OperatorID');
+      await resetAutoIncrement('buscrew', 'OperatorID');
       const actualOpId = OperatorID || result.insertId;
 
       if (Role === 'Driver') {
         // Driver.LicenseNumber gets the driver license
-        conn.query('INSERT INTO Driver (OperatorID, LicenseNumber, ExperienceYears) VALUES (?,?,?)',
+        conn.query('INSERT INTO driver (OperatorID, LicenseNumber, ExperienceYears) VALUES (?,?,?)',
           [actualOpId, LicenseNumber, ExperienceYears],
           (err2) => { if (err2) return res.status(500).json({ error: err2.message }); res.json({ message: 'Staff added successfully' }); });
 
       } else if (Role === 'Hostess') {
-        conn.query('INSERT INTO Hostess (OperatorID, LanguagesKnown) VALUES (?,?)', [actualOpId, Languages || ''], (err2) => {
+        conn.query('INSERT INTO hostess (OperatorID, LanguagesKnown) VALUES (?,?)', [actualOpId, Languages || ''], (err2) => {
           if (err2) return res.status(500).json({ error: err2.message });
           res.json({ message: 'Staff added successfully' });
         });
 
       } else if (Role === 'Security') {
         // FIX 2: SecurityStaff.LicenseNumber gets SLicenseNumber (the security-specific field)
-        conn.query('INSERT INTO SecurityStaff (OperatorID, LicenseNumber) VALUES (?,?)',
+        conn.query('INSERT INTO securitystaff (OperatorID, LicenseNumber) VALUES (?,?)',
           [actualOpId, SLicenseNumber],
           (err2) => { if (err2) return res.status(500).json({ error: err2.message }); res.json({ message: 'Staff added successfully' }); });
 
       } else if (Role === 'Attendant') {
-        conn.query('INSERT INTO Attendant (OperatorID, ServiceLevel) VALUES (?,?)',
+        conn.query('INSERT INTO attendant (OperatorID, ServiceLevel) VALUES (?,?)',
           [actualOpId, ServiceLevel],
           (err2) => { if (err2) return res.status(500).json({ error: err2.message }); res.json({ message: 'Staff added successfully' }); });
 
@@ -357,28 +357,28 @@ app.put('/api/staff/:id', (req, res) => {
   const { Name, PhoneNumber, Address, Role, LicenseNumber, SLicenseNumber, ExperienceYears, ServiceLevel, Languages } = req.body;
   const operatorID = req.params.id;
 
-  conn.query('UPDATE BusCrew SET Name=?, PhoneNumber=?, Address=? WHERE OperatorID=?',
+  conn.query('UPDATE buscrew SET Name=?, PhoneNumber=?, Address=? WHERE OperatorID=?',
     [Name, PhoneNumber, Address, operatorID],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
 
       if (Role === 'Driver') {
-        conn.query('UPDATE Driver SET LicenseNumber=?, ExperienceYears=? WHERE OperatorID=?', [LicenseNumber, ExperienceYears, operatorID], (err2) => {
+        conn.query('UPDATE driver SET LicenseNumber=?, ExperienceYears=? WHERE OperatorID=?', [LicenseNumber, ExperienceYears, operatorID], (err2) => {
           if (err2) return res.status(500).json({ error: err2.message });
           res.json({ message: 'Updated' });
         });
       } else if (Role === 'Hostess') {
-        conn.query('UPDATE Hostess SET LanguagesKnown=? WHERE OperatorID=?', [Languages || '', operatorID], (err2) => {
+        conn.query('UPDATE hostess SET LanguagesKnown=? WHERE OperatorID=?', [Languages || '', operatorID], (err2) => {
           if (err2) return res.status(500).json({ error: err2.message });
           res.json({ message: 'Updated' });
         });
       } else if (Role === 'Security') {
-        conn.query('UPDATE SecurityStaff SET LicenseNumber=? WHERE OperatorID=?', [SLicenseNumber, operatorID], (err2) => {
+        conn.query('UPDATE securitystaff SET LicenseNumber=? WHERE OperatorID=?', [SLicenseNumber, operatorID], (err2) => {
           if (err2) return res.status(500).json({ error: err2.message });
           res.json({ message: 'Updated' });
         });
       } else if (Role === 'Attendant') {
-        conn.query('UPDATE Attendant SET ServiceLevel=? WHERE OperatorID=?', [ServiceLevel, operatorID], (err2) => {
+        conn.query('UPDATE attendant SET ServiceLevel=? WHERE OperatorID=?', [ServiceLevel, operatorID], (err2) => {
           if (err2) return res.status(500).json({ error: err2.message });
           res.json({ message: 'Updated' });
         });
@@ -388,7 +388,7 @@ app.put('/api/staff/:id', (req, res) => {
     });
 });
 app.delete('/api/staff/:id', (req, res) => {
-  conn.query('DELETE FROM BusCrew WHERE OperatorID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
+  conn.query('DELETE FROM buscrew WHERE OperatorID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
 // ─── SEATS ───────────────────────────────────────────────────────────────────
@@ -397,14 +397,14 @@ app.get('/api/seats', (req, res) => {
   if (bookingId) {
     const q = `
       SELECT s.*, b.BusNumber 
-      FROM Seat s 
-      JOIN Bus b ON s.BusID = b.BusID 
-      JOIN Trip t ON b.BusID = t.BusID 
-      JOIN Booking bk ON t.TripID = bk.TripID 
+      FROM seat s 
+      JOIN bus b ON s.BusID = b.BusID 
+      JOIN trip t ON b.BusID = t.BusID 
+      JOIN booking bk ON t.TripID = bk.TripID 
       WHERE bk.BookingID = ? AND s.SeatStatus = 'Available'`;
     conn.query(q, [bookingId], (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
   } else {
-    conn.query(`SELECT s.*, b.BusNumber FROM Seat s LEFT JOIN Bus b ON s.BusID = b.BusID WHERE s.SeatStatus = 'Available'`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
+    conn.query(`SELECT s.*, b.BusNumber FROM seat s LEFT JOIN bus b ON s.BusID = b.BusID WHERE s.SeatStatus = 'Available'`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
   }
 });
 
@@ -413,43 +413,43 @@ app.get('/api/tickets', (req, res) => {
   conn.query(`SELECT tk.*, s.SeatNumber, b.BusNumber,
               CONCAT(p.FirstName,' ',p.LastName) as PassengerName,
               r.SourceCity, r.DestinationCity
-              FROM Ticket tk
-              LEFT JOIN Booking bk ON tk.BookingID = bk.BookingID
-              LEFT JOIN Seat s ON tk.SeatID = s.SeatID
-              LEFT JOIN Passenger p ON bk.PassengerID = p.PassengerID
-              LEFT JOIN Trip t ON bk.TripID = t.TripID
-              LEFT JOIN Bus b ON t.BusID = b.BusID
-              LEFT JOIN Route r ON t.RouteID = r.RouteID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
+              FROM ticket tk
+              LEFT JOIN booking bk ON tk.BookingID = bk.BookingID
+              LEFT JOIN seat s ON tk.SeatID = s.SeatID
+              LEFT JOIN passenger p ON bk.PassengerID = p.PassengerID
+              LEFT JOIN trip t ON bk.TripID = t.TripID
+              LEFT JOIN bus b ON t.BusID = b.BusID
+              LEFT JOIN route r ON t.RouteID = r.RouteID`, (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
 });
 app.post('/api/tickets', async (req, res) => {
   const { TicketID, BookingID, SeatID, TicketNumber, QRCode } = req.body;
-  conn.query('SELECT TicketID FROM Ticket WHERE TicketNumber = ?', [TicketNumber], (checkErr, existing) => {
+  conn.query('SELECT TicketID FROM ticket WHERE TicketNumber = ?', [TicketNumber], (checkErr, existing) => {
     if (checkErr) return res.status(500).json({ error: checkErr.message });
     if (existing.length > 0) {
       return res.status(409).json({ error: `Ticket number "${TicketNumber}" already exists. Please use a unique ticket number.` });
     }
-    conn.query('INSERT INTO Ticket (TicketID, BookingID, SeatID, TicketNumber, QRCode) VALUES (?,?,?,?,?)',
+    conn.query('INSERT INTO ticket (TicketID, BookingID, SeatID, TicketNumber, QRCode) VALUES (?,?,?,?,?)',
       [TicketID || null, BookingID, SeatID, TicketNumber, QRCode || null],
       async (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
-        await resetAutoIncrement('Ticket', 'TicketID');
+        await resetAutoIncrement('ticket', 'TicketID');
         res.json({ message: 'Ticket issued', TicketID: result.insertId || TicketID });
       });
   });
 });
 app.delete('/api/tickets/:id', (req, res) => {
-  conn.query('DELETE FROM Ticket WHERE TicketID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
+  conn.query('DELETE FROM ticket WHERE TicketID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
 // ─── DASHBOARD STATS ─────────────────────────────────────────────────────────
 app.get('/api/stats', (req, res) => {
   const queries = {
-    passengers: 'SELECT COUNT(*) as count FROM Passenger',
-    buses: 'SELECT COUNT(*) as count FROM Bus',
-    trips: 'SELECT COUNT(*) as count FROM Trip',
-    bookings: 'SELECT COUNT(*) as count FROM Booking',
-    revenue: 'SELECT COALESCE(SUM(PaymentAmount),0) as total FROM Payment WHERE PaymentStatus="Completed"',
-    pendingBookings: 'SELECT COUNT(*) as count FROM Booking WHERE BookingStatus="Pending"'
+    passengers: 'SELECT COUNT(*) as count FROM passenger',
+    buses: 'SELECT COUNT(*) as count FROM bus',
+    trips: 'SELECT COUNT(*) as count FROM trip',
+    bookings: 'SELECT COUNT(*) as count FROM booking',
+    revenue: 'SELECT COALESCE(SUM(PaymentAmount),0) as total FROM payment WHERE PaymentStatus="Completed"',
+    pendingBookings: 'SELECT COUNT(*) as count FROM booking WHERE BookingStatus="Pending"'
   };
   const results = {};
   let done = 0;
