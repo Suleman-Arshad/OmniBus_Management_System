@@ -40,7 +40,7 @@ function resetAutoIncrement(table, idColumn) {
 app.post('/api/auth/signup', (req, res) => {
   const { Username, Password } = req.body;
   if (!Username || !Password) return res.status(400).json({ error: 'Username and password required' });
-  conn.query('INSERT INTO Admin (Username, Password) VALUES (?, ?)', [Username, Password], (err, r) => {
+  conn.query('INSERT INTO admin (Username, Password) VALUES (?, ?)', [Username, Password], (err, r) => {
     if (err) {
       if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Username already exists' });
       return res.status(500).json({ error: err.message });
@@ -52,7 +52,7 @@ app.post('/api/auth/signup', (req, res) => {
 app.post('/api/auth/login', (req, res) => {
   const { Username, Password } = req.body;
   if (!Username || !Password) return res.status(400).json({ error: 'Username and password required' });
-  conn.query('SELECT * FROM Admin WHERE Username = ? AND Password = ?', [Username, Password], (err, r) => {
+  conn.query('SELECT * FROM admin WHERE Username = ? AND Password = ?', [Username, Password], (err, r) => {
     if (err) return res.status(500).json({ error: err.message });
     if (r.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
     res.json({ message: 'Login successful', username: Username });
