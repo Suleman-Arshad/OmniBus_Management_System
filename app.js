@@ -1,4 +1,4 @@
-const API = '/api';
+const API = window.location.origin + '/api';
 
 // ── Auth Logic ────────────────────────────────────────────────────────────────
 function checkAuth() {
