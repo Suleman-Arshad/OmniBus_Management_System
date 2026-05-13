@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const connection = mysql.createConnection({
+const conn = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
@@ -17,12 +17,12 @@ const connection = mysql.createConnection({
   }
 });
 
-connection.connect((err) => {
+conn.connect((err) => {
   if (err) {
     console.error('Error connecting to the database:', err.stack);
     return;
   }
-  console.log('Connected to Aiven MySQL as id ' + connection.threadId);
+  console.log('Connected to Aiven MySQL as id ' + conn.threadId);
 });
 
 // Helper: reset AUTO_INCREMENT to MAX(id)+1 after manual ID inserts
