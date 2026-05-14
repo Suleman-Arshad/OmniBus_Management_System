@@ -6,23 +6,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const pool = mysql.createPool({
+const conn = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 12639,
-  ssl: { rejectUnauthorized: false },
-  waitForConnections: true,
-  connectionLimit: 5,
-  queueLimit: 0,
-  enableKeepAlive: true,        // Connection ko 'zinda' rakhne ke liye
-  keepAliveInitialDelay: 10000, // 10 seconds baad signal bhejta hai
-  idleTimeout: 60000,           // 1 min idle rehne par connection refresh karega
+  ssl: {
+    rejectUnauthorized: false // Required for Aiven Cloud
+  }
 });
 
-const conn=pool.promise();
-pool.getConnection((err, conn) => {
+conn.connect((err) => {
   if (err) {
     console.error('Error connecting to the database:', err.stack);
     return;
