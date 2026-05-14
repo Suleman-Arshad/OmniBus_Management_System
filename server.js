@@ -449,7 +449,7 @@ app.get('/api/stats', (req, res) => {
     trips: 'SELECT COUNT(*) as count FROM trip',
     bookings: 'SELECT COUNT(*) as count FROM booking',
     revenue: 'SELECT COALESCE(SUM(PaymentAmount),0) as total FROM payment WHERE PaymentStatus=\'Completed\'',
-    pending: 'SELECT COUNT(*) as count FROM booking WHERE BookingStatus=\'Pending\''
+    pendingBookings: 'SELECT COUNT(*) as count FROM booking WHERE BookingStatus=\'Pending\''
   };
   const results = {};
   let done = 0;
