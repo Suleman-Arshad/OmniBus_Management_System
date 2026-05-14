@@ -442,22 +442,34 @@ app.delete('/api/tickets/:id', (req, res) => {
 });
 
 // ─── DASHBOARD STATS ─────────────────────────────────────────────────────────
+// ─── DASHBOARD STATS (UPDATED) ───────────────────────────────────────────────
 app.get('/api/stats', (req, res) => {
   const queries = {
     passengers: 'SELECT COUNT(*) as count FROM passenger',
     buses: 'SELECT COUNT(*) as count FROM bus',
     trips: 'SELECT COUNT(*) as count FROM trip',
     bookings: 'SELECT COUNT(*) as count FROM booking',
-    revenue: 'SELECT COALESCE(SUM(PaymentAmount),0) as total FROM payment WHERE PaymentStatus="Completed"',
-    pendingBookings: 'SELECT COUNT(*) as count FROM booking WHERE BookingStatus="Pending"'
+    revenue: 'SELECT COALESCE(SUM(PaymentAmount), 0) as total FROM payment WHERE PaymentStatus = "Completed"',
+    // Key changed to 'pending' to match frontend expectations
+    pending: 'SELECT COUNT(*) as count FROM booking WHERE BookingStatus = "Pending"'
   };
+
   const results = {};
   let done = 0;
   const keys = Object.keys(queries);
+
   keys.forEach(key => {
     conn.query(queries[key], (err, r) => {
-      if (!err) results[key] = r[0].count ?? r[0].total;
-      if (++done === keys.length) res.json(results);
+      if (err) {
+        console.error(`Error in ${key} query:`, err.message);
+        results[key] = 0;
+      } else {
+        results[key] = (r[0].count !== undefined) ? r[0].count : r[0].total;
+      }
+
+      if (++done === keys.length) {
+        res.json(results);
+      }
     });
   });
 });
