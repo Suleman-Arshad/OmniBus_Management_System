@@ -14,7 +14,10 @@ const conn = mysql.createConnection({
   port: process.env.DB_PORT || 12639,
   ssl: {
     rejectUnauthorized: false // Required for Aiven Cloud
-  }
+  },
+  enableKeepAlive: true,        
+  keepAliveInitialDelay: 10000, 
+  idleTimeout: 60000,
 });
 
 conn.connect((err) => {
