@@ -2,6 +2,10 @@
 
 OmniBus is a robust, full-stack management portal designed for bus transport operators. It streamlines fleet management, staff assignments, passenger bookings, and financial tracking into a single, responsive web interface.
 
+## 🔗 Live Demo
+
+**View the live application:** [omni-bus-management-system.vercel.app](https://omni-bus-management-system.vercel.app)
+
 ## 🚀 Features
 
 - **Dynamic Dashboard**: Real-time statistics for passengers, buses, trips, and revenue.
