@@ -6,7 +6,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const conn = mysql.createConnection({
+
+const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
@@ -15,17 +16,28 @@ const conn = mysql.createConnection({
   ssl: {
     rejectUnauthorized: false // Required for Aiven Cloud
   },
-  enableKeepAlive: true,        
-  keepAliveInitialDelay: 10000, 
-  idleTimeout: 60000,
+  waitForConnections: true,
+  connectionLimit: 5,     // keep low - Aiven free/hobby tiers cap total connections
+  maxIdle: 2,             // max idle connections kept open in the pool
+  idleTimeout: 60000,     // close idle connections after 60s, before Aiven kills them
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000,
 });
 
-conn.connect((err) => {
+
+const conn = pool;
+
+pool.on('error', (err) => {
+  console.error('MySQL pool error:', err.code || err.message);
+});
+
+pool.query('SELECT 1', (err) => {
   if (err) {
     console.error('Error connecting to the database:', err.stack);
     return;
   }
-  console.log('Connected to Aiven MySQL as id ' + conn.threadId);
+  console.log('Connected to Aiven MySQL via pool');
 });
 
 // Helper: reset AUTO_INCREMENT to MAX(id)+1 after manual ID inserts
@@ -39,7 +51,7 @@ function resetAutoIncrement(table, idColumn) {
   });
 }
 
-// ─── AUTHENTICATION ───────────────────────────────────────────────────────────
+//  AUTHENTICATION 
 app.post('/api/auth/signup', (req, res) => {
   const { Username, Password } = req.body;
   if (!Username || !Password) return res.status(400).json({ error: 'Username and password required' });
@@ -62,7 +74,7 @@ app.post('/api/auth/login', (req, res) => {
   });
 });
 
-// ─── PASSENGERS ──────────────────────────────────────────────────────────────
+//  PASSENGERS
 app.get('/api/passengers', (req, res) => {
   conn.query('SELECT * FROM passenger', (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
 });
@@ -88,7 +100,7 @@ app.delete('/api/passengers/:id', (req, res) => {
   conn.query('DELETE FROM passenger WHERE PassengerID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
-// ─── BUS TYPES ────────────────────────────────────────────────────────────────
+//  BUS TYPES
 app.post('/api/bustypes', (req, res) => {
   const { BusID, CategoryName } = req.body;
   conn.query('INSERT IGNORE INTO bustype VALUES (?,?)', [BusID, CategoryName],
@@ -99,7 +111,7 @@ app.delete('/api/bustypes/:busId', (req, res) => {
     (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'BusTypes cleared' }));
 });
 
-// ─── BUSES ───────────────────────────────────────────────────────────────────
+//  BUSES
 app.get('/api/buses', (req, res) => {
   conn.query(`SELECT b.*, bc.Name as DriverName, hc.Name as HostessName, GROUP_CONCAT(bt.CategoryName ORDER BY bt.CategoryName) as Types
               FROM bus b
@@ -113,7 +125,6 @@ app.post('/api/buses', async (req, res) => {
   conn.query('INSERT INTO bus (BusID, BusNumber, TotalSeats, OperatorID, HostessID) VALUES (?,?,?,?,?)', [BusID || null, BusNumber, TotalSeats, OperatorID || null, HostessID || null],
     async (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
-      // FIX 3: Auto-generate Seat rows for the new bus
       const actualBusId = BusID || result.insertId;
       const totalSeats = parseInt(TotalSeats) || 0;
       if (totalSeats > 0) {
@@ -155,7 +166,7 @@ app.delete('/api/buses/:id', (req, res) => {
   conn.query('DELETE FROM bus WHERE BusID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
-// ─── ROUTES ──────────────────────────────────────────────────────────────────
+// ROUTES
 app.get('/api/routes', (req, res) => {
   conn.query('SELECT * FROM route', (err, r) => err ? res.status(500).json({ error: err.message }) : res.json(r));
 });
@@ -178,7 +189,7 @@ app.delete('/api/routes/:id', (req, res) => {
   conn.query('DELETE FROM route WHERE RouteID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
-// ─── TRIPS ───────────────────────────────────────────────────────────────────
+// TRIPS
 app.get('/api/trips', (req, res) => {
   conn.query(`SELECT t.*, b.BusNumber, r.SourceCity, r.DestinationCity
               FROM trip t
@@ -204,7 +215,7 @@ app.delete('/api/trips/:id', (req, res) => {
   conn.query('DELETE FROM trip WHERE TripID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
-// ─── PL/SQL: STORED PROCEDURE ENDPOINTS ──────────────────────────────────────
+// PL/SQL: STORED PROCEDURE ENDPOINTS
 app.get('/api/trips/:id/revenue', (req, res) => {
   conn.query('CALL GetTripRevenue(?, @total)', [req.params.id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -215,7 +226,7 @@ app.get('/api/trips/:id/revenue', (req, res) => {
   });
 });
 
-// ─── BOOKINGS ─────────────────────────────────────────────────────────────────
+// BOOKINGS
 app.get('/api/bookings', (req, res) => {
   conn.query(`SELECT bk.*, CONCAT(p.FirstName,' ',p.LastName) as PassengerName,
               r.SourceCity, r.DestinationCity, t.DepartureDate
@@ -244,7 +255,7 @@ app.delete('/api/bookings/:id', (req, res) => {
   conn.query('DELETE FROM booking WHERE BookingID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
-// ─── PAYMENTS ─────────────────────────────────────────────────────────────────
+// PAYMENTS
 app.get('/api/payments', (req, res) => {
   conn.query(`SELECT py.*, bk.TotalAmount, bk.BookingStatus,
               CONCAT(p.FirstName,' ',p.LastName) as PassengerName
@@ -298,7 +309,7 @@ app.delete('/api/payments/:id', (req, res) => {
   conn.query('DELETE FROM payment WHERE PaymentID=?', [req.params.id], (err) => err ? res.status(500).json({ error: err.message }) : res.json({ message: 'Deleted' }));
 });
 
-// ─── STAFF (BusCrew) ──────────────────────────────────────────────────────────
+//  STAFF (BusCrew)
 app.get('/api/staff', (req, res) => {
   conn.query(`SELECT bc.*,
     d.LicenseNumber as DriverLicense, d.ExperienceYears,
@@ -467,6 +478,10 @@ app.get('/api/stats', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => { 
+if (require.main === module) {
+  app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-});
+  });
+}
+
+module.exports = app;
